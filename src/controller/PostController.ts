@@ -5,9 +5,10 @@ import { LikeDislikeSchema } from "../dtos/LikeDislike.dto";
 import { DeletePostSchema } from "../dtos/DeletePost.dto";
 import { ZodError } from "zod";
 import { BaseError } from "../error/BaseError";
+import { EditPostSchema } from "../dtos/EditPost.dto";
 
 export class PostController {
-  constructor(private postBusiness: PostBusiness) {}
+  constructor(private postBusiness: PostBusiness) { }
 
   public getAllPosts = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -22,7 +23,7 @@ export class PostController {
       } else if (error instanceof BaseError) {
         res.status(error.statusCode).send(error.message);
       } else {
-        res.status(500).send("Erro inesperado");
+        res.status(500).send(error);
       }
     }
   }
@@ -36,27 +37,6 @@ export class PostController {
 
       const result = await this.postBusiness.createPost(input)
 
-      res.status(201).send(result).send({ message: "Post criado com sucesso!" })
-    } catch (error) {
-      if (error instanceof ZodError) {
-        res.status(400).send(error.issues);
-      } else if (error instanceof BaseError) {
-        res.status(error.statusCode).send(error.message);
-      } else {
-        res.status(500).send("Erro inesperado");
-      }
-    }
-  }
-
-  public like = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const input = LikeDislikeSchema.parse({
-        token: req.headers.authorization as string,
-        post_id: req.params.id
-      })
-
-      const result = await this.postBusiness.like(input)
-
       res.status(201).send(result)
     } catch (error) {
       if (error instanceof ZodError) {
@@ -64,38 +44,18 @@ export class PostController {
       } else if (error instanceof BaseError) {
         res.status(error.statusCode).send(error.message);
       } else {
-        res.status(500).send("Erro inesperado");
-      }
-    }
-  }
-
-  public dislike = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const input = LikeDislikeSchema.parse({
-        token: req.headers.authorization as string,
-        post_id: req.params.id
-      })
-
-      const result = await this.postBusiness.dislike(input)
-
-      res.status(201).send(result)
-    } catch (error) {
-      if (error instanceof ZodError) {
-        res.status(400).send(error.issues);
-      } else if (error instanceof BaseError) {
-        res.status(error.statusCode).send(error.message);
-      } else {
-        res.status(500).send("Erro inesperado");
+        res.status(500).send(error);
       }
     }
   }
 
   public editPost = async (req: Request, res: Response): Promise<void> => {
     try {
-      const input = PostSchema.parse({
+      const input = EditPostSchema.parse({
         id: req.params.id,
         content: req.body.content,
-      });
+        token: req.headers.authorization
+      })
 
       await this.postBusiness.editPost(input)
 
@@ -106,7 +66,7 @@ export class PostController {
       } else if (error instanceof BaseError) {
         res.status(error.statusCode).send(error.message);
       } else {
-        res.status(500).send("Erro inesperado");
+        res.status(500).send(error);
       }
     }
   };
@@ -120,14 +80,14 @@ export class PostController {
 
       const result = await this.postBusiness.deletePost(input)
 
-      res.status(201).send(result).send({ message: "Post deletado com sucesso" });
+      res.status(201).send(result)
     } catch (error) {
       if (error instanceof ZodError) {
         res.status(400).send(error.issues);
       } else if (error instanceof BaseError) {
         res.status(error.statusCode).send(error.message);
       } else {
-        res.status(500).send("Erro inesperado");
+        res.status(500).send(error);
       }
     }
   }

@@ -1,26 +1,27 @@
-import { Post, PostDB, LikeDB } from "../models/Post";
-import { UserDB } from "../models/User";
+import { Post, PostDB } from "../models/Post";
 import { BaseDatabase } from "./BaseDatabase";
 
 export class PostDatabase extends BaseDatabase {
-  private TABLE_POSTS = "posts";
-  private TABLE_USERS = "users";
-  private TABLE_LIKES = "likes_dislikes"
+  public static TABLE_POSTS = "posts";
+  public static TABLE_USERS = "users";
+  public static TABLE_LIKES = "likes_dislikes"
+
+  public postDBModel = (post: Post) => {
+    const postDB: PostDB = {
+      id: post.getId(),
+      creator: post.getUserId(),
+      content: post.getContent()
+    }
+
+    return postDB
+  }
 
   public createPost = async (post: Post): Promise<void> => {
-    const id = post.getId()
-    const userId = post.getUserId()
-    const content = post.getContent()
-
-    await BaseDatabase.connection(this.TABLE_POSTS).insert({
-      id,
-      content,
-      user_id: userId
-    });
+    await BaseDatabase.connection(PostDatabase.TABLE_POSTS).insert(this.postDBModel(post))
   }
 
   public getUserById = async (id: string): Promise<PostDB | undefined> => {
-    const [user] = await BaseDatabase.connection(this.TABLE_USERS)
+    const [user] = await BaseDatabase.connection(PostDatabase.TABLE_USERS)
       .select("*")
       .where({ id });
 
@@ -28,11 +29,22 @@ export class PostDatabase extends BaseDatabase {
   }
 
   public getAllPosts = async (): Promise<PostDB[]> => {
-    return BaseDatabase.connection(this.TABLE_POSTS).select("*");
+    return BaseDatabase.connection(PostDatabase.TABLE_POSTS)
+      .select(
+        "posts.id",
+        "posts.content",
+        "posts.likes",
+        "posts.dislikes",
+        "posts.createdAt",
+        "posts.updatedAt",
+        "users.id as creatorId",
+        "users.name as creatorName"
+      )
+      .leftJoin("users", "posts.creatorId", "users.id");
   };
 
   public getPostById = async (id: string): Promise<PostDB | undefined> => {
-    const [post] = await BaseDatabase.connection(this.TABLE_POSTS)
+    const [post] = await BaseDatabase.connection(PostDatabase.TABLE_POSTS)
       .select("*")
       .where({ id })
 
@@ -40,30 +52,14 @@ export class PostDatabase extends BaseDatabase {
   }
 
   public deletePostById = async (id: string): Promise<void> => {
-    await BaseDatabase.connection(this.TABLE_POSTS).delete().where({ id })
-  }
-
-  public like = async (like: LikeDB): Promise<void> => {
-    await BaseDatabase.connection(this.TABLE_LIKES).insert(like)
-  }
-
-  public dislike = async (userId: string, postId: string): Promise<void> => {
-    await BaseDatabase.connection(this.TABLE_LIKES)
-      .delete()
-      .where({ post_id: postId, user_id: userId })
-  }
-
-  public getLikePost = async (userId: string, postId: string): Promise<LikeDB[]> => {
-    return BaseDatabase.connection(this.TABLE_LIKES)
-      .select("*")
-      .where({ post_id: postId, user_id: userId })
+    await BaseDatabase.connection(PostDatabase.TABLE_POSTS).delete().where({ id })
   }
 
   public editPost = async (post: Post): Promise<void> => {
     const id = post.getId()
     const content = post.getContent()
 
-    await BaseDatabase.connection(this.TABLE_POSTS)
+    await BaseDatabase.connection(PostDatabase.TABLE_POSTS)
       .update({ content })
       .where({ id })
   }

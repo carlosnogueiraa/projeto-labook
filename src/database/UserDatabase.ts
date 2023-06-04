@@ -1,19 +1,24 @@
-import { User } from "../models/User";
+import { USER_ROLES, User, UserDB } from "../models/User";
 import { BaseDatabase } from "./BaseDatabase";
 
 
 export class UserDatabase extends BaseDatabase {
     public static TABLE_USERS = "users"
 
-    public createUser = async (user: User) => {
-        const id = user.getId()
-        const name = user.getName()
-        const email = user.getEmail()
-        const password = user.getPassword()
-        const role = user.getRole()
+    public userDBModel = (user: User) => {
+        const userDB: UserDB = {
+            id : user.getId(),
+            name : user.getName(),
+            email : user.getEmail(),
+            password : user.getPassword(),
+            role : user.getRole()
+        }
 
-        await BaseDatabase.connection(UserDatabase.TABLE_USERS)
-            .insert({ id,name,email, password,role })
+        return userDB
+    }
+
+    public createUser = async (user: User) => {
+        await BaseDatabase.connection(UserDatabase.TABLE_USERS).insert(this.userDBModel(user))
     }
 
     public getUserByEmail = async (email: string) => {
