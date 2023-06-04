@@ -1,11 +1,17 @@
 import z from "zod"
 
-export interface CreatePostDTO {
+export interface EditPostDTO {
+    id: string,
     token: string,
     content: string,
 }
 
-export const PostSchema = z.object({
+export const EditPostSchema = z.object({
+    id: z.string({
+        invalid_type_error: "O token precisa ser uma string",
+        required_error: "O token é obrigatório"
+    })
+    .min(1, "Precisa de pelo menos 1 caractere"),
     token: z.string({
         invalid_type_error: "O token precisa ser uma string",
         required_error: "O token é obrigatório"
@@ -16,4 +22,4 @@ export const PostSchema = z.object({
         required_error: "O content é obrigatório"
     })
     .min(3,  "Precisa de pelo menos 3 caracteres")
-}).transform(data => data as CreatePostDTO)
+}).transform(data => data as EditPostDTO)

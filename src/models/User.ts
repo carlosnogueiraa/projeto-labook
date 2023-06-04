@@ -1,5 +1,5 @@
 export enum USER_ROLES {
-    USER = "USER",
+    NORMAL = "NORMAL",
     ADMIN = "ADMIN"
 }
 
@@ -59,5 +59,4 @@ export class User {
     public setRole = (newRole: USER_ROLES) => {
         this.role = newRole
     }
-
 }

@@ -5,49 +5,51 @@ CREATE TABLE users (
     email TEXT UNIQUE NOT NULL,
     password TEXT NOT NULL,
     role TEXT NOT NULL,
-    created_at TEXT NOT NULL
+    createdAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE posts (
     id TEXT PRIMARY KEY UNIQUE NOT NULL,
-    creator_id TEXT NOT NULL,
     content TEXT NOT NULL,
-    likes INTEGER NOT NULL,
-    dislikes INTEGER NOT NULL,
-    created_at TEXT NOT NULL,
-    updated_at TEXT NOT NULL,
-    FOREIGN KEY(creator_id) REFERENCES users(id)
+    likes INTEGER NOT NULL DEFAULT 0,
+    dislikes INTEGER NOT NULL DEFAULT 0,
+    createdAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    creator TEXT NOT NULL,
+    FOREIGN KEY(creator) REFERENCES users(id)
 );
 
 CREATE TABLE likes_dislikes (
-    user_id TEXT NOT NULL,
-    post_id TEXT NOT NULL,
+    userId TEXT NOT NULL,
+    postId TEXT NOT NULL,
     like INTEGER NOT NULL,
-    FOREIGN KEY(user_id) REFERENCES users(id),
-    FOREIGN KEY(post_id) REFERENCES posts(id)
+    FOREIGN KEY(userId) REFERENCES users(id),
+    FOREIGN KEY(postId) REFERENCES posts(id)
 );
 
-INSERT INTO users (id, name, email, password, role, created_at)
+INSERT INTO users (id, name, email, password, role)
 VALUES
-    ("u001", "Brenno", "brenno@email.com", "1234", "user", DATETIME()),
-    ("u002", "João", "joao@email.com", "4321", "user", DATETIME()),
-    ("u003", "Larissa", "larissa@email.com", "2345", "user", DATETIME());
+    ("u001", "Brenno", "brenno@email.com", "1234", "NORMAL"),
+    ("u002", "João", "joao@email.com", "4321", "NORMAL"),
+    ("u003", "Larissa", "larissa@email.com", "2345", "NORMAL");
+
+UPDATE users SET role = 'ADMIN' WHERE id = '0c4ff410-8350-467d-ae38-15ab48afb8aa';
 
 SELECT * FROM users;
 
 DROP TABLE users;
 
-INSERT INTO posts (id, creator_id, content, likes, dislikes, created_at, updated_at)
+INSERT INTO posts (id, creator, content)
 VALUES
-    ("p001", "u001", "Hello World!", 10, 2, DATETIME(), DATETIME()),
-    ("p002", "u002", "First post!", 8, 1, DATETIME(), DATETIME()),
-    ("p003", "u003", "Hi, everyone!", 9, 3, DATETIME(), DATETIME());
+    ("p001", "u001", "Hello World!"),
+    ("p002", "u002", "First post!"),
+    ("p003", "u003", "Hi, everyone!");
 
 SELECT * FROM posts;
 
 DROP TABLE posts;
 
-INSERT INTO likes_dislikes (user_id, post_id, like)
+INSERT INTO likes_dislikes (userId, postId, like)
 VALUES
     ("u001", "p001", 1),
     ("u002", "p001", 0),

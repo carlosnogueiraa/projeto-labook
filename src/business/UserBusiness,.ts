@@ -1,6 +1,7 @@
 import { UserDatabase } from "../database/UserDatabase"
 import { LoginInputDTO } from "../dtos/LoginInput.dto"
 import { SignupInputDTO } from "../dtos/SignupInput.dto"
+import { CustomError } from "../error/CustomError"
 import { USER_ROLES, User } from "../models/User"
 import { Authenticator, TokenPayload } from "../services/Authenticator"
 import { HashManager } from "../services/HashManager"
@@ -19,25 +20,25 @@ export class UserBusiness {
         const { name, email, password } = input
 
         if (!name || !email || !password) {
-            throw new Error("Um ou mais parâmetros faltando!")
+            throw new CustomError(404, "Um ou mais parâmetros faltando!")
         }
 
         if (typeof name !== "string" || name.length < 3) {
-            throw new Error("Parâmetro 'name' inválido")
+            throw new CustomError(404, "Parâmetro 'name' inválido")
         }
 
         if (typeof email !== "string" || email.indexOf("@") === -1) {
-            throw new Error("Parâmetro 'email' inválido")
+            throw new CustomError(404, "Parâmetro 'email' inválido")
         }
 
         if (typeof password !== "string" || password.length < 6) {
-            throw new Error("Parâmetro 'password' inválido")
+            throw new CustomError(404, "Parâmetro 'password' inválido")
         }
 
         const emailExists = await this.userDatabase.getUserByEmail(email)
-
+        
         if (emailExists) {
-            throw new Error("O email já está cadastrado!")
+            throw new CustomError(406, "O email já está cadastrado!")
         }
 
         const id = this.idGenerator.generate()
@@ -48,16 +49,16 @@ export class UserBusiness {
             name,
             email,
             hashedPassword,
-            USER_ROLES.USER
+            USER_ROLES.NORMAL
         )
 
         await this.userDatabase.createUser(user)
-
+        
         const payload: TokenPayload = {
             id: user.getId(),
             role: user.getRole()
         }
-
+        
         const token = this.authenticator.generateToken(payload)
 
         const result = {
@@ -72,15 +73,15 @@ export class UserBusiness {
         const { email, password } = input
 
         if (!email || !password) {
-            throw new Error("Um ou mais parâmetros faltando!")
+            throw new CustomError(404, "Um ou mais parâmetros faltando!")
         }
 
         if (typeof email !== "string" || email.length < 3) {
-            throw new Error("Parâmetro 'Email' inválido!")
+            throw new CustomError(404, "Parâmetro 'Email' inválido!")
         }
 
         if (typeof password !== "string" || email.length < 6) {
-            throw new Error("Parâmetro 'Password' inválido!")
+            throw new CustomError(404, "Parâmetro 'Password' inválido!")
         }
 
         if (
@@ -88,13 +89,13 @@ export class UserBusiness {
                 /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/
             )
         ) {
-            throw new Error("Email inválido!")
+            throw new CustomError(404, "Email inválido!")
         }
 
         const userDB = await this.userDatabase.getUserByEmail(email)
 
         if (!userDB) {
-            throw new Error("Email não cadastrado!")
+            throw new CustomError(404, "Email não cadastrado!")
         }
 
         const user = new User(
@@ -111,7 +112,7 @@ export class UserBusiness {
         )
 
         if (!isPasswordCorrect) {
-            throw new Error("Senha incorreta")
+            throw new CustomError(404, "Senha incorreta")
         }
 
         const payload: TokenPayload = {

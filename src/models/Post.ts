@@ -1,18 +1,12 @@
 export interface PostDB {
     id: string,
     content: string,
-    user_id: string
+    creator: string
 }
 
-export interface LikeDB {
-    id: string,
-    post_id: string,
-    user_id: string
-}
-
-export interface inputType {
+export interface InputType {
     token: string,
-    post_id: string
+    postId: string
 }
 
 export class Post {
